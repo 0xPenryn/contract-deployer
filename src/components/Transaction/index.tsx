@@ -72,11 +72,13 @@ export const Transaction = () => {
     setTransactionId('');
     setButtonState('pending');
 
+    console.log("wallet address: ", session?.data?.user?.walletAddress);
+
     try {
       const initCode = encodeDeployData({
         abi: TestContractABI,
         bytecode: TestContractBytecode.object as `0x${string}`,
-        args: [session.data?.user?.walletAddress, 'Test', 'TST'],
+        args: [session?.data?.user?.walletAddress, 'Test', 'TST'],
       });
 
       const { finalPayload } = await MiniKit.commandsAsync.sendTransaction({
@@ -119,6 +121,7 @@ export const Transaction = () => {
   return (
     <div className="grid w-full gap-4">
       <p className="text-lg font-semibold">Transaction</p>
+      <p>{session?.data?.user?.walletAddress}</p>
       <LiveFeedback
         label={{
           failed: 'Transaction failed',
