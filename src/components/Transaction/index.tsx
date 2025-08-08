@@ -22,7 +22,7 @@ import { worldchain } from 'viem/chains';
  */
 export const Transaction = () => {
   const session = useSession();
-  const singletonFactory = '0xce0042B868300000d44A59004Da54A005ffdcf9f';
+  // const singletonFactory = '0xce0042B868300000d44A59004Da54A005ffdcf9f';
   const [buttonState, setButtonState] = useState<
     'pending' | 'success' | 'failed' | undefined
   >(undefined);
@@ -82,7 +82,7 @@ export const Transaction = () => {
       const { finalPayload } = await MiniKit.commandsAsync.sendTransaction({
         transaction: [
           {
-            address: singletonFactory,
+            address: '0xce0042B868300000d44A59004Da54A005ffdcf9f',
             abi: SingletonFactoryABI,
             functionName: 'deploy',
             args: [
@@ -91,6 +91,7 @@ export const Transaction = () => {
             ],
           },
         ],
+        formatPayload: false,
       });
 
       if (finalPayload.status === 'success') {
