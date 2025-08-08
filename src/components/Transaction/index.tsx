@@ -1,11 +1,13 @@
 'use client';
 
+import SingletonFactoryABI from '@/abi/SingletonFactory.json';
 import TestContractABI from '@/abi/TestContract.json';
+import TestContractBytecode from '@/abi/TestContractBytecode.json';
 import { Button, LiveFeedback } from '@worldcoin/mini-apps-ui-kit-react';
 import { MiniKit } from '@worldcoin/minikit-js';
 import { useWaitForTransactionReceipt } from '@worldcoin/minikit-react';
 import { useEffect, useState } from 'react';
-import { createPublicClient, http } from 'viem';
+import { createPublicClient, encodeDeployData, http } from 'viem';
 import { worldchain } from 'viem/chains';
 
 /**
@@ -18,14 +20,10 @@ import { worldchain } from 'viem/chains';
  * 3. Wait in a useEffect for the transaction to complete
  */
 export const Transaction = () => {
-  // See the code for this contract here: https://worldscan.org/address/0xF0882554ee924278806d708396F1a7975b732522#code
-  const myContractToken = '0xF0882554ee924278806d708396F1a7975b732522';
+  const singletonFactory = '0x4e59b44847b379578588920ca78fbf26c0b4956c';
   const [buttonState, setButtonState] = useState<
     'pending' | 'success' | 'failed' | undefined
   >(undefined);
-  const [whichButton, setWhichButton] = useState<'getToken' | 'usePermit2'>(
-    'getToken',
-  );
 
   // This triggers the useWaitForTransactionReceipt hook when updated
   const [transactionId, setTransactionId] = useState<string>('');
@@ -44,7 +42,7 @@ export const Transaction = () => {
   } = useWaitForTransactionReceipt({
     client: client,
     appConfig: {
-      app_id: process.env.WLD_CLIENT_ID as `app_${string}`,
+      app_id: process.env.NEXT_PUBLIC_APP_ID as `app_${string}`,
     },
     transactionId: transactionId,
   });
@@ -68,19 +66,27 @@ export const Transaction = () => {
   }, [isConfirmed, isConfirming, isError, error, transactionId]);
 
   // This is a basic transaction call to mint a token
-  const onClickGetToken = async () => {
+  const onClickDeploy = async () => {
     setTransactionId('');
-    setWhichButton('getToken');
     setButtonState('pending');
 
     try {
+      const initCode = encodeDeployData({
+        abi: TestContractABI,
+        bytecode: TestContractBytecode.object as `0x${string}`,
+        args: [MiniKit.user.walletAddress, 'Test', 'TST'],
+      });
+
       const { finalPayload } = await MiniKit.commandsAsync.sendTransaction({
         transaction: [
           {
-            address: myContractToken,
-            abi: TestContractABI,
-            functionName: 'mintToken',
-            args: [],
+            address: singletonFactory,
+            abi: SingletonFactoryABI,
+            functionName: 'deploy',
+            args: [
+              initCode,
+              '0x0000000000000000000000000000000000000000000000000000000000000000',
+            ],
           },
         ],
       });
@@ -107,74 +113,6 @@ export const Transaction = () => {
     }
   };
 
-  // This is a basic transaction call to use Permit2 to spend the token you minted
-  // Make sure to call Mint Token first
-  const onClickUsePermit2 = async () => {
-    setTransactionId('');
-    setWhichButton('usePermit2');
-    setButtonState('pending');
-    const address = (await MiniKit.getUserByUsername('alex')).walletAddress;
-
-    // Permit2 is valid for max 1 hour
-    const permitTransfer = {
-      permitted: {
-        token: myContractToken,
-        amount: (0.5 * 10 ** 18).toString(),
-      },
-      nonce: Date.now().toString(),
-      deadline: Math.floor((Date.now() + 30 * 60 * 1000) / 1000).toString(),
-    };
-
-    const transferDetails = {
-      to: address,
-      requestedAmount: (0.5 * 10 ** 18).toString(),
-    };
-
-    try {
-      const { finalPayload } = await MiniKit.commandsAsync.sendTransaction({
-        transaction: [
-          {
-            address: myContractToken,
-            abi: TestContractABI,
-            functionName: 'signatureTransfer',
-            args: [
-              [
-                [
-                  permitTransfer.permitted.token,
-                  permitTransfer.permitted.amount,
-                ],
-                permitTransfer.nonce,
-                permitTransfer.deadline,
-              ],
-              [transferDetails.to, transferDetails.requestedAmount],
-              'PERMIT2_SIGNATURE_PLACEHOLDER_0',
-            ],
-          },
-        ],
-        permit2: [
-          {
-            ...permitTransfer,
-            spender: myContractToken,
-          },
-        ],
-      });
-
-      if (finalPayload.status === 'success') {
-        console.log(
-          'Transaction submitted, waiting for confirmation:',
-          finalPayload.transaction_id,
-        );
-        setTransactionId(finalPayload.transaction_id);
-      } else {
-        console.error('Transaction submission failed:', finalPayload);
-        setButtonState('failed');
-      }
-    } catch (err) {
-      console.error('Error sending transaction:', err);
-      setButtonState('failed');
-    }
-  };
-
   return (
     <div className="grid w-full gap-4">
       <p className="text-lg font-semibold">Transaction</p>
@@ -184,36 +122,17 @@ export const Transaction = () => {
           pending: 'Transaction pending',
           success: 'Transaction successful',
         }}
-        state={whichButton === 'getToken' ? buttonState : undefined}
+        state={buttonState}
         className="w-full"
       >
         <Button
-          onClick={onClickGetToken}
+          onClick={onClickDeploy}
           disabled={buttonState === 'pending'}
           size="lg"
           variant="primary"
           className="w-full"
         >
-          Get Token
-        </Button>
-      </LiveFeedback>
-      <LiveFeedback
-        label={{
-          failed: 'Transaction failed',
-          pending: 'Transaction pending',
-          success: 'Transaction successful',
-        }}
-        state={whichButton === 'usePermit2' ? buttonState : undefined}
-        className="w-full"
-      >
-        <Button
-          onClick={onClickUsePermit2}
-          disabled={buttonState === 'pending'}
-          size="lg"
-          variant="tertiary"
-          className="w-full"
-        >
-          Use Permit2
+          Deploy Contract
         </Button>
       </LiveFeedback>
     </div>
