@@ -1,6 +1,6 @@
 'use client';
 
-import SingletonFactoryABI from '@/abi/SingletonFactory.json';
+import DeterministicDeployFactoryABI from '@/abi/DeterministicDeployFactory.json';
 import TestContractABI from '@/abi/TestContract.json';
 import TestContractBytecode from '@/abi/TestContractBytecode.json';
 import { Button, LiveFeedback } from '@worldcoin/mini-apps-ui-kit-react';
@@ -84,8 +84,8 @@ export const Transaction = () => {
       const { finalPayload } = await MiniKit.commandsAsync.sendTransaction({
         transaction: [
           {
-            address: '0xce0042B868300000d44A59004Da54A005ffdcf9f',
-            abi: SingletonFactoryABI,
+            address: '0x423e6C871E2c23bBB8f3cB0D1E04813743d878C7',
+            abi: DeterministicDeployFactoryABI,
             functionName: 'deploy',
             args: [
               initCode,
