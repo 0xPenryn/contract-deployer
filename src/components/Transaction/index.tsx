@@ -22,7 +22,7 @@ import { worldchain } from 'viem/chains';
  */
 export const Transaction = () => {
   const session = useSession();
-  // const singletonFactory = '0xce0042B868300000d44A59004Da54A005ffdcf9f';
+  const deterministicDeployFactory = '0x423e6C871E2c23bBB8f3cB0D1E04813743d878C7';
   const [buttonState, setButtonState] = useState<
     'pending' | 'success' | 'failed' | undefined
   >(undefined);
@@ -84,7 +84,7 @@ export const Transaction = () => {
       const { finalPayload } = await MiniKit.commandsAsync.sendTransaction({
         transaction: [
           {
-            address: '0x423e6C871E2c23bBB8f3cB0D1E04813743d878C7',
+            address: deterministicDeployFactory,
             abi: DeterministicDeployFactoryABI,
             functionName: 'deploy',
             args: [
