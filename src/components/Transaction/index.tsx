@@ -6,6 +6,7 @@ import TestContractBytecode from '@/abi/TestContractBytecode.json';
 import { Button, LiveFeedback } from '@worldcoin/mini-apps-ui-kit-react';
 import { MiniKit } from '@worldcoin/minikit-js';
 import { useWaitForTransactionReceipt } from '@worldcoin/minikit-react';
+import { useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 import { createPublicClient, encodeDeployData, http } from 'viem';
 import { worldchain } from 'viem/chains';
@@ -20,6 +21,7 @@ import { worldchain } from 'viem/chains';
  * 3. Wait in a useEffect for the transaction to complete
  */
 export const Transaction = () => {
+  const session = useSession();
   const singletonFactory = '0xce0042B868300000d44A59004Da54A005ffdcf9f';
   const [buttonState, setButtonState] = useState<
     'pending' | 'success' | 'failed' | undefined
@@ -74,7 +76,7 @@ export const Transaction = () => {
       const initCode = encodeDeployData({
         abi: TestContractABI,
         bytecode: TestContractBytecode.object as `0x${string}`,
-        args: [MiniKit.user.walletAddress, 'Test', 'TST'],
+        args: [session.data?.user?.walletAddress, 'Test', 'TST'],
       });
 
       const { finalPayload } = await MiniKit.commandsAsync.sendTransaction({
