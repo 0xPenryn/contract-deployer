@@ -78,7 +78,7 @@ export const Transaction = () => {
       const initCode = encodeDeployData({
         abi: TestContractABI,
         bytecode: TestContractBytecode.object as `0x${string}`,
-        args: [session?.data?.user?.walletAddress, 'Test', 'TST'],
+        args: ['Hello!', '0x2cFc85d8E48F8EAB294be644d9E25C3030863003'],
       });
 
       const { finalPayload } = await MiniKit.commandsAsync.sendTransaction({
