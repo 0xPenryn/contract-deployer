@@ -20,7 +20,7 @@ import { worldchain } from 'viem/chains';
  * 3. Wait in a useEffect for the transaction to complete
  */
 export const Transaction = () => {
-  const singletonFactory = '0x4e59b44847b379578588920ca78fbf26c0b4956c';
+  const singletonFactory = '0xce0042B868300000d44A59004Da54A005ffdcf9f';
   const [buttonState, setButtonState] = useState<
     'pending' | 'success' | 'failed' | undefined
   >(undefined);
